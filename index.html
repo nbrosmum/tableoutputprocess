@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSV File Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 20%;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: center;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <table id="csvTable"></table>
+    <table id="calculationTable"></table>
+    <script>
+        // Function to read and display CSV file
+        function displayCSV() {
+            // Specify the path to your CSV file
+            var csvFilePath = 'table_input.csv';
+
+            // Parse CSV file
+            Papa.parse(csvFilePath, {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    // Callback function executed after parsing is complete
+                    var data = results.data;
+                    var tableHTML = '<thead><tr>';
+
+                    // Generate table header
+                    for (var key in data[0]) {
+                        tableHTML += '<th>' + key + '</th>';
+                    }
+                    tableHTML += '</tr></thead><tbody>';
+
+                    // Generate table rows
+                    data.forEach(function(row) {
+                        tableHTML += '<tr>';
+                        for (var key in row) {
+                            tableHTML += '<td>' + row[key] + '</td>';
+                        }
+                        tableHTML += '</tr>';
+                    });
+
+                    tableHTML += '</tbody>';
+                    document.getElementById('csvTable').innerHTML = tableHTML;
+
+                    // Perform calculations and display the second table
+                    displayCalculationTable(data);
+                }
+            });
+        }
+
+        // Function to perform calculations and display the second table
+        function displayCalculationTable(data) {
+            var indexValueMap = {};
+
+            // Create a map of Index to Value
+            data.forEach(function(row) {
+                indexValueMap[row['Index #']] = parseInt(row['Value'], 10);
+            });
+
+            // Define calculations
+            var calculations = [
+                { Category: 'Alpha', Value: (indexValueMap['A5'] || 0) + (indexValueMap['A20'] || 0) },
+                { Category: 'Beta', Value: (indexValueMap['A15'] || 1) / (indexValueMap['A7'] || 1) },
+                { Category: 'Charlie', Value: (indexValueMap['A13'] || 0) * (indexValueMap['A12'] || 1) }
+            ];
+
+            // Generate the second table HTML
+            var calculationTableHTML = '<thead><tr><th>Category</th><th>Value</th></tr></thead><tbody>';
+            calculations.forEach(function(calc) {
+                calculationTableHTML += '<tr><td>' + calc.Category + '</td><td>' + calc.Value + '</td></tr>';
+            });
+            calculationTableHTML += '</tbody>';
+            document.getElementById('calculationTable').innerHTML = calculationTableHTML;
+        }
+
+        // Call the displayCSV() function when the page loads
+        window.onload = function() {
+            displayCSV();
+        };
+    </script>
+</body>
+</html>
